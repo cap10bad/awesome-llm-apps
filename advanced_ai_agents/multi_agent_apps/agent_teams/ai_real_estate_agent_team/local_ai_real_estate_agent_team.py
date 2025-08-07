@@ -71,8 +71,7 @@ class DirectFirecrawlAgent:
             return {"error": "No websites selected"}
         
         # Create comprehensive prompt with specific schema guidance
-        prompt = f"""You are extracting property listings from real estate websites. Extract EVERY property listing you can find on the page.
-        
+        prompt = f"""You are extracting property listings from real estate websites. Extract EVERY property listing you can find on the page.        
 USER SEARCH CRITERIA:
         - Budget: {user_criteria.get('budget_range', 'Any')}
 - Property Type: {user_criteria.get('property_type', 'Any')}
@@ -149,8 +148,7 @@ EXTRACT EVERY VISIBLE PROPERTY LISTING - DO NOT LIMIT TO JUST A FEW!
                 }
             else:
                 # Enhanced error message with debugging info
-                error_msg = f"""No properties extracted despite finding {total_count} listings.
-                
+                error_msg = f"""No properties extracted despite finding {total_count} listings.                
                 POSSIBLE CAUSES:
                 1. Website structure changed - extraction schema doesn't match
                 2. Website blocking or requiring interaction (captcha, login)
@@ -434,7 +432,7 @@ def run_sequential_analysis(city, state, user_criteria, selected_websites, firec
     
     # Extract and add property links
     all_text = f"{json.dumps(properties, indent=2)} {market_analysis} {property_valuations}"
-    urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', all_text)
+    urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', all_text)
     
     if urls:
         final_synthesis += "\n### Available Property Links:\n"
@@ -802,8 +800,8 @@ def main():
                 )
             else:
                 # Fallback to markdown display
-            st.markdown("### 🏠 Comprehensive Real Estate Analysis")
-            st.markdown(final_result)
+                st.markdown("###  Comprehensive Real Estate Analysis")
+                st.markdown(final_result)
             
             # Download button with better styling
             download_content = final_result['markdown_synthesis'] if isinstance(final_result, dict) else final_result
