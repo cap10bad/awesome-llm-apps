@@ -38,7 +38,7 @@ class PropertyListing(BaseModel):
 class DirectFirecrawlAgent:
     """Agent with direct Firecrawl integration for property search"""
     
-    def __init__(self, firecrawl_api_key: str, model_id: str = "gpt-oss:20b"):
+    def __init__(self, firecrawl_api_key: str, model_id: str = "gpt-oss:120b"):
         self.agent = Agent(
             model=Ollama(id=model_id),
             markdown=True,
@@ -246,11 +246,11 @@ def create_sequential_agents(llm, user_criteria):
     
     return property_search_agent, market_analysis_agent, property_valuation_agent
 
-def run_sequential_analysis(city, state, user_criteria, selected_websites, firecrawl_api_key, update_callback):
+def run_sequential_analysis(city, state, user_criteria, selected_websites, firecrawl_api_key, model_id, update_callback):
     """Run agents sequentially with manual coordination"""
     
     # Initialize agents
-    llm = Ollama(id="gpt-oss:20b")
+    llm = Ollama(id=model_id)
     property_search_agent, market_analysis_agent, property_valuation_agent = create_sequential_agents(llm, user_criteria)
     
     # Step 1: Property Search with Direct Firecrawl Integration
@@ -258,7 +258,7 @@ def run_sequential_analysis(city, state, user_criteria, selected_websites, firec
     
     direct_agent = DirectFirecrawlAgent(
         firecrawl_api_key=firecrawl_api_key,
-        model_id="gpt-oss:20b"
+        model_id=model_id
     )
     
     properties_data = direct_agent.find_properties_direct(
@@ -501,7 +501,7 @@ def display_properties_professionally(properties, market_analysis, property_valu
                         prices.append(int(price_num))
                 except:
                     pass
-        avg_price = f"${sum(prices) // len(prices):,}" if prices else "N/A"
+        avg_price = f"${{sum(prices) // len(prices):,}}" if prices else "N/A"
         st.metric("Average Price", avg_price)
     with col3:
         types = {}
@@ -595,7 +595,7 @@ def main():
         st.header("⚙️ Configuration")
         
         # API Key inputs with validation
-        with st.expander("🔑 API Keys", expanded=True):
+        with st.expander("🔑 API Keys & Endpoints", expanded=True):
             firecrawl_key = st.text_input(
                 "Firecrawl API Key", 
                 value=DEFAULT_FIRECRAWL_API_KEY, 
@@ -603,13 +603,23 @@ def main():
                 help="Get your API key from https://firecrawl.dev",
                 placeholder="fc_..."
             )
+            ollama_url = st.text_input(
+                "Ollama URL",
+                value="http://localhost:11434",
+                help="URL for your local Ollama instance"
+            )
+            model_id = st.text_input(
+                "Ollama Model",
+                value="gpt-oss:120b",
+                help="The Ollama model to use for analysis"
+            )
             
             # Update environment variables
             if firecrawl_key: os.environ["FIRECRAWL_API_KEY"] = firecrawl_key
+            if ollama_url: os.environ["OLLAMA_HOST"] = ollama_url
             
             # Ollama model info
-            st.info("🤖 Using Ollama model: gpt-oss:20b (local)")
-            st.markdown("Make sure Ollama is running with: `ollama run gpt-oss:20b`")
+            st.markdown(f"Make sure Ollama is running with: `ollama run {model_id}`")
         
         # Website selection
         with st.expander("🌐 Search Sources", expanded=True):
@@ -746,7 +756,7 @@ def main():
         
         try:
             user_criteria = {
-                'budget_range': f"${min_price:,} - ${max_price:,}",
+                'budget_range': f"${{min_price:,}} - ${{max_price:,}}",
                 'property_type': property_type,
                 'bedrooms': bedrooms,
                 'bathrooms': bathrooms,
@@ -784,6 +794,7 @@ def main():
                 user_criteria=user_criteria,
                 selected_websites=selected_websites,
                 firecrawl_api_key=firecrawl_key,
+                model_id=model_id,
                 update_callback=update_progress
             )
             
